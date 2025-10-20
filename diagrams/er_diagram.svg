@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1600" height="1200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .table { fill: #f8f9fa; stroke: #2c3e50; stroke-width: 2; }
+      .table-header { fill: #3498db; }
+      .text { font-family: Arial, sans-serif; font-size: 12px; fill: #2c3e50; }
+      .text-white { font-family: Arial, sans-serif; font-size: 14px; font-weight: bold; fill: white; }
+      .relation { stroke: #e74c3c; stroke-width: 2; fill: none; marker-end: url(#arrowhead); }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#e74c3c" />
+    </marker>
+  </defs>
+  
+  <text x="800" y="30" class="text-white" style="font-size:24px; fill:#2c3e50; text-anchor:middle;">ER-диаграмма БД АСУ ТП (упрощенная схема)</text>
+  
+  <!-- core_units -->
+  <g transform="translate(50,80)">
+    <rect class="table" width="200" height="140"/>
+    <rect class="table-header" width="200" height="30"/>
+    <text x="100" y="20" class="text-white" text-anchor="middle">core_units</text>
+    <text x="10" y="50" class="text">id: uuid [PK]</text>
+    <text x="10" y="70" class="text">code: varchar</text>
+    <text x="10" y="90" class="text">name: varchar</text>
+    <text x="10" y="110" class="text">symbol: varchar</text>
+    <text x="10" y="130" class="text">unit_type: varchar</text>
+  </g>
+  
+  <!-- tech_params_parameters (центральная) -->
+  <g transform="translate(600,300)">
+    <rect class="table" width="250" height="180" style="stroke:#e74c3c; stroke-width:3;"/>
+    <rect class="table-header" width="250" height="30" style="fill:#e74c3c;"/>
+    <text x="125" y="20" class="text-white" text-anchor="middle">tech_params_parameters</text>
+    <text x="10" y="50" class="text">id: uuid [PK]</text>
+    <text x="10" y="70" class="text">group_id: uuid [FK]</text>
+    <text x="10" y="90" class="text">tag: varchar [unique]</text>
+    <text x="10" y="110" class="text">name: varchar</text>
+    <text x="10" y="130" class="text">parameter_type: varchar</text>
+    <text x="10" y="150" class="text">unit_id: uuid [FK]</text>
+    <text x="10" y="170" class="text">is_active: boolean</text>
+  </g>
+  
+  <!-- tech_params_current_values -->
+  <g transform="translate(950,300)">
+    <rect class="table" width="250" height="120"/>
+    <rect class="table-header" width="250" height="30"/>
+    <text x="125" y="20" class="text-white" text-anchor="middle">tech_params_current_values</text>
+    <text x="10" y="50" class="text">parameter_id: uuid [PK,FK]</text>
+    <text x="10" y="70" class="text">value: text</text>
+    <text x="10" y="90" class="text">quality: int</text>
+    <text x="10" y="110" class="text">timestamp: timestamptz</text>
+  </g>
+  
+  <!-- controllers_io_channels -->
+  <g transform="translate(600,550)">
+    <rect class="table" width="230" height="100"/>
+    <rect class="table-header" width="230" height="30"/>
+    <text x="115" y="20" class="text-white" text-anchor="middle">controllers_io_channels</text>
+    <text x="10" y="50" class="text">id: uuid [PK]</text>
+    <text x="10" y="70" class="text">module_id: uuid</text>
+    <text x="10" y="90" class="text">parameter_id: uuid [FK]</text>
+  </g>
+  
+  <!-- archive_historical_data -->
+  <g transform="translate(350,550)">
+    <rect class="table" width="230" height="120"/>
+    <rect class="table-header" width="230" height="30"/>
+    <text x="115" y="20" class="text-white" text-anchor="middle">archive_historical_data</text>
+    <text x="10" y="50" class="text">id: bigserial [PK]</text>
+    <text x="10" y="70" class="text">parameter_id: uuid [FK]</text>
+    <text x="10" y="90" class="text">timestamp: timestamptz</text>
+    <text x="10" y="110" class="text">value: text</text>
+  </g>
+  
+  <!-- algorithms_algorithms -->
+  <g transform="translate(900,550)">
+    <rect class="table" width="200" height="80"/>
+    <rect class="table-header" width="200" height="30"/>
+    <text x="100" y="20" class="text-white" text-anchor="middle">algorithms_algorithms</text>
+    <text x="10" y="50" class="text">id: uuid [PK]</text>
+    <text x="10" y="70" class="text">code: varchar [unique]</text>
+  </g>
+  
+  <!-- algorithms_algorithm_inputs -->
+  <g transform="translate(900,700)">
+    <rect class="table" width="220" height="100"/>
+    <rect class="table-header" width="220" height="30"/>
+    <text x="110" y="20" class="text-white" text-anchor="middle">algorithm_inputs</text>
+    <text x="10" y="50" class="text">id: uuid [PK]</text>
+    <text x="10" y="70" class="text">algorithm_id: uuid [FK]</text>
+    <text x="10" y="90" class="text">parameter_id: uuid [FK]</text>
+  </g>
+  
+  <!-- algorithms_algorithm_outputs -->
+  <g transform="translate(1150,700)">
+    <rect class="table" width="220" height="100"/>
+    <rect class="table-header" width="220" height="30"/>
+    <text x="110" y="20" class="text-white" text-anchor="middle">algorithm_outputs</text>
+    <text x="10" y="50" class="text">id: uuid [PK]</text>
+    <text x="10" y="70" class="text">algorithm_id: uuid [FK]</text>
+    <text x="10" y="90" class="text">parameter_id: uuid [FK]</text>
+  </g>
+  
+  <!-- visualization_screen_elements -->
+  <g transform="translate(1250,300)">
+    <rect class="table" width="250" height="100"/>
+    <rect class="table-header" width="250" height="30"/>
+    <text x="125" y="20" class="text-white" text-anchor="middle">visualization_screen_elements</text>
+    <text x="10" y="50" class="text">id: uuid [PK]</text>
+    <text x="10" y="70" class="text">screen_id: uuid</text>
+    <text x="10" y="90" class="text">parameter_id: uuid [FK]</text>
+  </g>
+  
+  <!-- security_users -->
+  <g transform="translate(100,350)">
+    <rect class="table" width="180" height="80"/>
+    <rect class="table-header" width="180" height="30"/>
+    <text x="90" y="20" class="text-white" text-anchor="middle">security_users</text>
+    <text x="10" y="50" class="text">id: uuid [PK]</text>
+    <text x="10" y="70" class="text">username: varchar [unique]</text>
+  </g>
+  
+  <!-- security_roles -->
+  <g transform="translate(100,500)">
+    <rect class="table" width="180" height="80"/>
+    <rect class="table-header" width="180" height="30"/>
+    <text x="90" y="20" class="text-white" text-anchor="middle">security_roles</text>
+    <text x="10" y="50" class="text">id: uuid [PK]</text>
+    <text x="10" y="70" class="text">code: varchar [unique]</text>
+  </g>
+  
+  <!-- security_user_roles -->
+  <g transform="translate(100,650)">
+    <rect class="table" width="180" height="100"/>
+    <rect class="table-header" width="180" height="30"/>
+    <text x="90" y="20" class="text-white" text-anchor="middle">security_user_roles</text>
+    <text x="10" y="50" class="text">id: uuid [PK]</text>
+    <text x="10" y="70" class="text">user_id: uuid [FK]</text>
+    <text x="10" y="90" class="text">role_id: uuid [FK]</text>
+  </g>
+  
+  <!-- Relations -->
+  <path class="relation" d="M 250 150 L 600 390"/>
+  <path class="relation" d="M 850 390 L 950 360"/>
+  <path class="relation" d="M 715 480 L 715 550"/>
+  <path class="relation" d="M 580 390 L 465 550"/>
+  <path class="relation" d="M 850 390 L 1010 750"/>
+  <path class="relation" d="M 850 390 L 1260 750"/>
+  <path class="relation" d="M 850 390 L 1250 350"/>
+  <path class="relation" d="M 190 430 L 190 650"/>
+  <path class="relation" d="M 190 580 L 190 650"/>
+  
+  <text x="50" y="1180" class="text" style="font-size:10px; fill:#7f8c8d;">Конфиденциально. АО «НИКИЭТ». Схема БД ПТК АСУ ТП на платформе КРОСС.</text>
+</svg>
+

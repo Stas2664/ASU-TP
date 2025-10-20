@@ -1,0 +1,97 @@
+Project ASU_TP_DB {
+  database_type: 'PostgreSQL'
+}
+
+Table core_units {
+  id uuid [pk]
+  code varchar
+  name varchar
+  symbol varchar
+  unit_type varchar
+}
+
+Table tech_params_parameter_groups {
+  id uuid [pk]
+  parent_id uuid
+  code varchar
+  name varchar
+}
+
+Table tech_params_parameters {
+  id uuid [pk]
+  group_id uuid
+  tag varchar [unique]
+  name varchar
+  parameter_type varchar
+  unit_id uuid
+  is_active boolean
+}
+
+Table tech_params_current_values {
+  parameter_id uuid [pk]
+  value text
+  quality int
+  timestamp timestamptz
+}
+
+Table controllers_io_channels {
+  id uuid [pk]
+  module_id uuid
+  parameter_id uuid
+}
+
+Table archive_historical_data {
+  id bigserial [pk]
+  parameter_id uuid
+  timestamp timestamptz
+  value text
+}
+
+Table algorithms_algorithms {
+  id uuid [pk]
+  code varchar [unique]
+}
+
+Table algorithms_algorithm_inputs {
+  id uuid [pk]
+  algorithm_id uuid
+  parameter_id uuid
+}
+
+Table algorithms_algorithm_outputs {
+  id uuid [pk]
+  algorithm_id uuid
+  parameter_id uuid
+}
+
+Table visualization_screen_elements {
+  id uuid [pk]
+  screen_id uuid
+  parameter_id uuid
+}
+
+Table security_users {
+  id uuid [pk]
+  username varchar [unique]
+}
+
+Table security_roles {
+  id uuid [pk]
+  code varchar [unique]
+}
+
+Table security_user_roles {
+  id uuid [pk]
+  user_id uuid
+  role_id uuid
+}
+
+Ref: tech_params_parameters.unit_id > core_units.id
+Ref: tech_params_current_values.parameter_id > tech_params_parameters.id
+Ref: controllers_io_channels.parameter_id > tech_params_parameters.id
+Ref: archive_historical_data.parameter_id > tech_params_parameters.id
+Ref: algorithms_algorithm_inputs.parameter_id > tech_params_parameters.id
+Ref: algorithms_algorithm_outputs.parameter_id > tech_params_parameters.id
+Ref: visualization_screen_elements.parameter_id > tech_params_parameters.id
+Ref: security_user_roles.user_id > security_users.id
+Ref: security_user_roles.role_id > security_roles.id

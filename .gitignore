@@ -1,0 +1,55 @@
+# База данных и логи
+*.log
+*.dump
+*.backup
+postgres_data/
+pgadmin_data/
+grafana_data/
+logs/
+backup/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Credentials
+.env
+.env.local
+.env.railway
+*.pem
+*.key
+*.crt
+
+# Временные файлы
+*.tmp
+*.temp
+.cache/
+
+# Docker volumes
+postgres-volume/
+

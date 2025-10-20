@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ER-диаграмма - Экспорт</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; }
+        .container { max-width: 1800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; }
+        .buttons { margin: 20px 0; }
+        button { padding: 10px 20px; margin-right: 10px; background: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
+        button:hover { background: #2980b9; }
+        #diagram { border: 1px solid #ddd; margin-top: 20px; }
+        .instructions { background: #e8f4f8; padding: 15px; border-left: 4px solid #3498db; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>ER-диаграмма БД АСУ ТП</h1>
+        
+        <div class="instructions">
+            <h3>Инструкция по экспорту:</h3>
+            <p><strong>PNG:</strong> Нажмите кнопку "Скачать PNG" ниже.</p>
+            <p><strong>PDF:</strong> Нажмите Ctrl+P (Печать) → Сохранить как PDF → Сохраните как diagrams/er_diagram.pdf</p>
+        </div>
+        
+        <div class="buttons">
+            <button onclick="downloadPNG()">📥 Скачать PNG</button>
+            <button onclick="window.print()">📄 Печать (для PDF)</button>
+        </div>
+        
+        <div id="diagram"></div>
+    </div>
+    
+    <script>
+        // Загрузка SVG
+        fetch('./er_diagram.svg')
+            .then(r => r.text())
+            .then(svg => {
+                document.getElementById('diagram').innerHTML = svg;
+            });
+        
+        // Экспорт в PNG
+        function downloadPNG() {
+            const svgElement = document.querySelector('svg');
+            const svgData = new XMLSerializer().serializeToString(svgElement);
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const img = new Image();
+            
+            canvas.width = 1600;
+            canvas.height = 1200;
+            
+            img.onload = function() {
+                ctx.fillStyle = 'white';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(img, 0, 0);
+                
+                canvas.toBlob(function(blob) {
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'er_diagram.png';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                });
+            };
+            
+            img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
+        }
+    </script>
+    
+    <style media="print">
+        body { background: white; }
+        .buttons, .instructions, h1 { display: none; }
+        .container { box-shadow: none; }
+    </style>
+</body>
+</html>
+

@@ -1,0 +1,204 @@
+version: '3.9'
+
+services:
+  # PostgreSQL база данных
+  postgres:
+    image: postgres:15-alpine
+    container_name: asu_tp_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-postgres}
+      TZ: ${TZ:-Europe/Moscow}
+      # Настройки производительности
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=ru_RU.UTF-8"
+      POSTGRES_HOST_AUTH_METHOD: "md5"
+    command:
+      - "postgres"
+      - "-c"
+      - "shared_buffers=2GB"
+      - "-c"
+      - "effective_cache_size=6GB"
+      - "-c"
+      - "maintenance_work_mem=512MB"
+      - "-c"
+      - "work_mem=32MB"
+      - "-c"
+      - "max_connections=200"
+      - "-c"
+      - "random_page_cost=1.1"
+      - "-c"
+      - "effective_io_concurrency=200"
+      - "-c"
+      - "wal_level=replica"
+      - "-c"
+      - "max_wal_size=2GB"
+      - "-c"
+      - "min_wal_size=512MB"
+      - "-c"
+      - "checkpoint_completion_target=0.9"
+      - "-c"
+      - "shared_preload_libraries=pg_stat_statements"
+      - "-c"
+      - "log_statement=all"
+      - "-c"
+      - "log_duration=on"
+      - "-c"
+      - "log_min_duration_statement=1000"
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./sql:/docker-entrypoint-initdb.d:ro
+      - ./backup:/backup
+      - ./logs/postgres:/var/log/postgresql
+    networks:
+      - asu_tp_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 8G
+        reservations:
+          cpus: '2'
+          memory: 4G
+
+  # pgAdmin для управления БД (опционально)
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: asu_tp_pgadmin
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@asu-tp.local}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: 'False'
+    ports:
+      - "${PGADMIN_PORT:-5050}:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - asu_tp_network
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # Grafana для мониторинга (опционально)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: asu_tp_grafana
+    restart: always
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
+      GF_INSTALL_PLUGINS: grafana-postgresql-datasource
+      GF_SERVER_ROOT_URL: http://localhost:3000
+      TZ: ${TZ:-Europe/Moscow}
+    ports:
+      - "${GRAFANA_PORT:-3000}:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./monitoring/datasources:/etc/grafana/provisioning/datasources:ro
+    networks:
+      - asu_tp_network
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # Инициализатор БД (выполняется один раз)
+  db_init:
+    image: postgres:15-alpine
+    container_name: asu_tp_db_init
+    environment:
+      PGHOST: postgres
+      PGPORT: 5432
+      PGUSER: ${POSTGRES_USER:-postgres}
+      PGPASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    volumes:
+      - ./sql:/sql:ro
+      - ./scripts:/scripts:ro
+    networks:
+      - asu_tp_network
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: >
+      sh -c "
+        echo 'Ожидание готовности БД...' &&
+        sleep 10 &&
+        echo 'Инициализация БД...' &&
+        psql -f /sql/01_create_database.sql &&
+        psql -d asu_tp_db -f /sql/02_create_schemas.sql &&
+        psql -d asu_tp_db -f /sql/03_create_tables.sql &&
+        psql -d asu_tp_db -f /sql/04_create_indexes.sql &&
+        psql -d asu_tp_db -f /sql/05_create_roles.sql &&
+        psql -d asu_tp_db -f /sql/06_create_functions.sql &&
+        psql -d asu_tp_db -f /sql/07_create_triggers.sql &&
+        psql -d asu_tp_db -f /sql/08_initial_data.sql &&
+        echo 'База данных успешно инициализирована!'
+      "
+    profiles:
+      - init
+
+  # Резервное копирование (запускается по расписанию)
+  backup:
+    image: postgres:15-alpine
+    container_name: asu_tp_backup
+    environment:
+      PGHOST: postgres
+      PGPORT: 5432
+      PGUSER: ${POSTGRES_USER:-postgres}
+      PGPASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      BACKUP_RETENTION_DAYS: ${BACKUP_RETENTION_DAYS:-30}
+    volumes:
+      - ./backup:/backup
+      - ./scripts:/scripts:ro
+    networks:
+      - asu_tp_network
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: >
+      sh -c "
+        while true; do
+          echo 'Создание резервной копии...' &&
+          TIMESTAMP=$$(date +%Y%m%d_%H%M%S) &&
+          pg_dump -d asu_tp_db -Fc -b -v -f /backup/asu_tp_db_$$TIMESTAMP.dump &&
+          echo 'Резервная копия создана: asu_tp_db_$$TIMESTAMP.dump' &&
+          echo 'Удаление старых резервных копий...' &&
+          find /backup -name '*.dump' -mtime +$$BACKUP_RETENTION_DAYS -delete &&
+          echo 'Следующая резервная копия через 24 часа...' &&
+          sleep 86400
+        done
+      "
+    profiles:
+      - backup
+
+volumes:
+  postgres_data:
+    name: asu_tp_postgres_data
+    driver: local
+  pgadmin_data:
+    name: asu_tp_pgadmin_data
+    driver: local
+  grafana_data:
+    name: asu_tp_grafana_data
+    driver: local
+
+networks:
+  asu_tp_network:
+    name: asu_tp_network
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/24
+
+
+

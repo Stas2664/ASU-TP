@@ -1,0 +1,25 @@
+ER-ДИАГРАММА PDF - ИНСТРУКЦИЯ ПО ГЕНЕРАЦИИ
+============================================
+
+ФАЙЛ er_diagram.svg УЖЕ СОЗДАН! ✅
+
+Для получения PDF:
+
+СПОСОБ 1 (через браузер):
+1. Откройте diagrams/export_diagram.html в Chrome (уже открыт)
+2. Нажмите Ctrl+P (Печать)
+3. Destination: "Сохранить как PDF"
+4. Сохраните как diagrams/er_diagram.pdf
+
+СПОСОБ 2 (dbdiagram.io):
+1. Откройте https://dbdiagram.io/d
+2. Вставьте содержимое docs/acceptance/er_diagram.dbml
+3. Export → PDF
+
+СПОСОБ 3 (онлайн-конвертер):
+https://cloudconvert.com/svg-to-pdf
+Загрузите diagrams/er_diagram.svg
+
+После получения переименуйте этот файл:
+er_diagram.pdf.txt → er_diagram.pdf
+
