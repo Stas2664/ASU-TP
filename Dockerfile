@@ -29,6 +29,8 @@ RUN apk add --no-cache \
     python3 \
     py3-pip \
     py3-psycopg2 \
+    py3-numpy \
+    py3-pandas \
     # Для отладки
     postgresql-contrib \
     # Временная зона
@@ -143,9 +145,9 @@ done
 EOF
 RUN chmod +x /scripts/auto_backup.sh
 
-# Установка Python зависимостей
-COPY requirements.txt /tmp/requirements.txt
-RUN pip3 install --no-cache-dir psycopg2-binary pandas numpy
+# Python-зависимости устанавливаются через пакетный менеджер Alpine (apk)
+# (PEP 668 запрещает системный pip без venv). Если нужны дополнительные пакеты,
+# добавьте их как py3-<name> в блок apk add выше.
 
 # Создание entrypoint скрипта
 COPY <<'EOF' /usr/local/bin/docker-entrypoint-custom.sh
