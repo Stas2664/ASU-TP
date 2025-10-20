@@ -175,8 +175,10 @@ ENV POSTGRES_INITDB_ARGS="--encoding=UTF8 --locale=ru_RU.UTF-8"
 # Порты
 EXPOSE 5432
 
-# Volumes для персистентности данных
-VOLUME ["/var/lib/postgresql/data", "/backup", "/logs"]
+# Хранилище данных
+# Примечание (Railway): не используйте VOLUME в Dockerfile.
+# Настройте постоянное хранилище через Railway Volumes:
+# https://docs.railway.com/reference/volumes
 
 # Health check
 HEALTHCHECK --interval=10s --timeout=5s --start-period=30s --retries=3 \
